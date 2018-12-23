@@ -119,6 +119,43 @@ func commandGet(arguments docopt.Opts, entries map[string]entry) {
 	}
 }
 
+func commandLint(arguments docopt.Opts, entries map[string]entry) {
+	multipleValues := map[string]bool{
+		"AcceptEnv": true,
+		"HostKey":   true,
+	}
+	bestPractices := map[string]string{
+		"AuthenticationMethods":   "publickey",
+		"HostbasedAuthentication": "no",
+		"IgnoreRhosts":            "yes",
+		"PasswordAuthentication":  "no",
+		"PermitEmptyPasswords":    "no",
+		"PermitRootLogin":         "no",
+		"Protocol":                "2",
+		"PubkeyAuthentication":    "yes",
+		"StrictModes":             "yes",
+		"UsePrivilegeSeparation":  "yes",
+	}
+	exitCode := 0
+	for name, entry := range entries {
+		if _, ok := multipleValues[name]; !ok {
+			if len(entry.Values) > 1 {
+				log.Printf("error: multiple values not allowed for %s", name)
+				exitCode = 1
+			}
+		}
+
+		if validValue, ok := bestPractices[name]; ok {
+			if entry.Values[0] != validValue {
+				log.Printf("error: found %s for %s, expected %s", entry.Values[0], name, validValue)
+				exitCode = 1
+			}
+		}
+	}
+
+	os.Exit(exitCode)
+}
+
 func commandSet(arguments docopt.Opts, entries map[string]entry, filename string) {
 	key, _ := arguments.String("<key>")
 	value, _ := arguments.String("<value>")
@@ -135,7 +172,7 @@ func commandUnset(arguments docopt.Opts, entries map[string]entry, filename stri
 func main() {
 	usage := `sshd-config.
 
-Usage: sshd-config <command> <key> [<value>] [--filename=<filename>]
+Usage: sshd-config <command> [<key>] [<value>] [--filename=<filename>]
        sshd-config -h | --help
        sshd-config --version
 
@@ -147,6 +184,7 @@ Options:
 Commands:
    add        Add a value to a key
    get        Get a key's values
+   lint       Lint a config against best practices
    set        Set a value on a key
    unset      Unset all instances of a key`
 
@@ -170,6 +208,9 @@ Commands:
 	case "get":
 		commandGet(arguments, entries)
 		break
+	case "lint":
+		commandLint(arguments, entries)
+		break
 	case "set":
 		commandSet(arguments, entries, filename)
 		break
@@ -177,6 +218,6 @@ Commands:
 		commandUnset(arguments, entries, filename)
 		break
 	default:
-		log.Printf("error: %s", fmt.Errorf("%s is not a command. See 'ini-writer help'", command))
+		log.Printf("error: %s", fmt.Errorf("%s is not a command. See 'sshd-config help'", command))
 	}
 }
