@@ -120,6 +120,8 @@ func commandGet(arguments docopt.Opts, entries map[string]entry) {
 }
 
 func commandLint(arguments docopt.Opts, entries map[string]entry) {
+	logger := log.New(os.Stderr, "", 0)
+
 	multipleValues := map[string]bool{
 		"AcceptEnv":     true,
 		"HostKey":       true,
@@ -142,14 +144,14 @@ func commandLint(arguments docopt.Opts, entries map[string]entry) {
 	for name, entry := range entries {
 		if _, ok := multipleValues[name]; !ok {
 			if len(entry.Values) > 1 {
-				log.Printf("error: multiple values not allowed for %s", name)
+				logger.Printf("error: multiple values not allowed for %s", name)
 				exitCode = 1
 			}
 		}
 
 		if validValue, ok := bestPractices[name]; ok {
 			if entry.Values[0] != validValue {
-				log.Printf("error: found %s for %s, expected %s", entry.Values[0], name, validValue)
+				logger.Printf("error: for key '%s', expected '%s', actual '%s'", name, validValue, entry.Values[0])
 				exitCode = 1
 			}
 		}
