@@ -1,7 +1,7 @@
 GH_USER ?= josegonzalez
 NAME = sshd-config
 HARDWARE = $(shell uname -m)
-VERSION ?= 0.2.0
+VERSION ?= 0.3.0
 
 build: clean $(NAME)
 	mkdir -p build/linux  && GOOS=linux  go build -a -o build/linux/$(NAME)
