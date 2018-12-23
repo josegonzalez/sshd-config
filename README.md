@@ -31,3 +31,26 @@ Commands:
    set        Set a value on a key
    unset      Unset all instances of a key
 ```
+
+### linting
+
+Linting runs against the following rules:
+
+- Multiple values only allowed for:
+    - AcceptEnv
+    - HostKey
+    - ListenAddress
+    - Port
+- The following keys may *only* have the corresponding values:
+		- AuthenticationMethods:   publickey
+		- HostbasedAuthentication: no
+		- IgnoreRhosts:            yes
+		- PasswordAuthentication:  no
+		- PermitEmptyPasswords:    no
+		- PermitRootLogin:         no
+		- Protocol:                2
+		- PubkeyAuthentication:    yes
+		- StrictModes:             yes
+		- UsePrivilegeSeparation:  yes
+
+Any violation of the above rules will result in the error being printed to stderr and non-zero exit code.
