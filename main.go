@@ -97,15 +97,6 @@ func configWrite(entries map[string]entry, filename string) error {
 	return nil
 }
 
-func commandGet(arguments docopt.Opts, entries map[string]entry) {
-	key, _ := arguments.String("<key>")
-	if entry, ok := entries[key]; ok {
-		for _, value := range entry.Values {
-			println(value)
-		}
-	}
-}
-
 func commandAdd(arguments docopt.Opts, entries map[string]entry, filename string) {
 	key, _ := arguments.String("<key>")
 	value, _ := arguments.String("<value>")
@@ -117,6 +108,15 @@ func commandAdd(arguments docopt.Opts, entries map[string]entry, filename string
 
 	entries[key] = entry{Key: key, Values: values}
 	configWrite(entries, filename)
+}
+
+func commandGet(arguments docopt.Opts, entries map[string]entry) {
+	key, _ := arguments.String("<key>")
+	if entry, ok := entries[key]; ok {
+		for _, value := range entry.Values {
+			println(value)
+		}
+	}
 }
 
 func commandSet(arguments docopt.Opts, entries map[string]entry, filename string) {
