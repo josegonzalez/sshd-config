@@ -121,8 +121,10 @@ func commandGet(arguments docopt.Opts, entries map[string]entry) {
 
 func commandLint(arguments docopt.Opts, entries map[string]entry) {
 	multipleValues := map[string]bool{
-		"AcceptEnv": true,
-		"HostKey":   true,
+		"AcceptEnv":     true,
+		"HostKey":       true,
+		"ListenAddress": true,
+		"Port":          true,
 	}
 	bestPractices := map[string]string{
 		"AuthenticationMethods":   "publickey",
