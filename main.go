@@ -190,7 +190,7 @@ Commands:
    set        Set a value on a key
    unset      Unset all instances of a key`
 
-	arguments, _ := docopt.ParseArgs(usage, os.Args[1:], "0.3.0")
+	arguments, _ := docopt.ParseArgs(usage, os.Args[1:], "0.4.0")
 
 	filename, err := arguments.String("--filename")
 	if err != nil {
