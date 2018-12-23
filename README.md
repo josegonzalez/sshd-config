@@ -42,15 +42,15 @@ Linting runs against the following rules:
     - ListenAddress
     - Port
 - The following keys may *only* have the corresponding values:
-		- AuthenticationMethods:   publickey
-		- HostbasedAuthentication: no
-		- IgnoreRhosts:            yes
-		- PasswordAuthentication:  no
-		- PermitEmptyPasswords:    no
-		- PermitRootLogin:         no
-		- Protocol:                2
-		- PubkeyAuthentication:    yes
-		- StrictModes:             yes
-		- UsePrivilegeSeparation:  yes
+    - AuthenticationMethods:   publickey
+    - HostbasedAuthentication: no
+    - IgnoreRhosts:            yes
+    - PasswordAuthentication:  no
+    - PermitEmptyPasswords:    no
+    - PermitRootLogin:         no
+    - Protocol:                2
+    - PubkeyAuthentication:    yes
+    - StrictModes:             yes
+    - UsePrivilegeSeparation:  yes
 
 Any violation of the above rules will result in the error being printed to stderr and non-zero exit code.
