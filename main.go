@@ -135,13 +135,14 @@ func commandUnset(arguments docopt.Opts, entries map[string]entry, filename stri
 func main() {
 	usage := `sshd-config.
 
-Usage: sshd-config <command> <filename> <key> [<value>]
+Usage: sshd-config <command> <key> [<value>] [--filename=<filename>]
        sshd-config -h | --help
        sshd-config --version
 
 Options:
-  -h --help            Show this screen.
-  --version            Show version.
+  -h --help              Show this screen.
+  --version              Show version.
+  --filename=<filename>  The sshd-config to modify [default: /etc/ssh/sshd_config]
 
 Commands:
    add        Add a value to a key
@@ -151,7 +152,7 @@ Commands:
 
 	arguments, _ := docopt.ParseArgs(usage, os.Args[1:], "0.1.0")
 
-	filename, err := arguments.String("<filename>")
+	filename, err := arguments.String("--filename")
 	if err != nil {
 		log.Printf("error: %s", err)
 	}
