@@ -19,6 +19,7 @@ type entry struct {
 }
 
 var (
+	Version string
 	elogger *log.Logger
 	logger  *log.Logger
 )
@@ -316,11 +317,11 @@ func main() {
 
 Usage: sshd-config <command> [<key>] [<value>] [--filename=<filename>]
        sshd-config -h | --help
-       sshd-config --version
+       sshd-config -v | --version
 
 Options:
   -h --help              Show this screen.
-  --version              Show version.
+  -v --version           Show version.
   --filename=<filename>  The sshd-config to modify [default: /etc/ssh/sshd_config]
 
 Commands:
@@ -330,7 +331,7 @@ Commands:
    set        Set a value on a key
    unset      Unset all instances of a key`
 
-	arguments, _ := docopt.ParseArgs(usage, os.Args[1:], "0.5.0")
+	arguments, _ := docopt.ParseArgs(usage, os.Args[1:], Version)
 
 	filename, err := arguments.String("--filename")
 	if err != nil {
