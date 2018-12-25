@@ -7,6 +7,7 @@ import (
 	"os"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 
 	docopt "github.com/docopt/docopt-go"
@@ -15,6 +16,16 @@ import (
 type entry struct {
 	Key    string
 	Values []string
+}
+
+var (
+	elogger *log.Logger
+	logger  *log.Logger
+)
+
+func init() {
+	elogger = log.New(os.Stderr, "", 0)
+	logger = log.New(os.Stdout, "", 0)
 }
 
 func readFile(path string) (string, error) {
@@ -114,21 +125,33 @@ func commandGet(arguments docopt.Opts, entries map[string]entry) {
 	key, _ := arguments.String("<key>")
 	if entry, ok := entries[key]; ok {
 		for _, value := range entry.Values {
-			println(value)
+			logger.Printf("%s", value)
 		}
 	}
 }
 
-func commandLint(arguments docopt.Opts, entries map[string]entry) {
-	logger := log.New(os.Stderr, "", 0)
+func inList(name string, values []string, slice []string) bool {
+	exit := true
+	for _, value := range values {
+		found := false
+		for _, s := range slice {
+			if s == value {
+				found = true
+				break
+			}
+		}
 
-	multipleValues := map[string]bool{
-		"AcceptEnv":     true,
-		"HostKey":       true,
-		"ListenAddress": true,
-		"Port":          true,
+		if !found {
+			elogger.Printf("error: for key '%s', expected one of '%s', actual '%s'", name, slice, value)
+			exit = false
+		}
 	}
-	bestPractices := map[string]string{
+
+	return exit
+}
+
+func commandLint(arguments docopt.Opts, entries map[string]entry) {
+	bestPracticesValidation := map[string]string{
 		"AuthenticationMethods":   "publickey",
 		"HostbasedAuthentication": "no",
 		"IgnoreRhosts":            "yes",
@@ -140,18 +163,133 @@ func commandLint(arguments docopt.Opts, entries map[string]entry) {
 		"StrictModes":             "yes",
 		"UsePrivilegeSeparation":  "yes",
 	}
+
+	commaValidation := map[string][]string{
+		"Ciphers": []string{"3des-cbc", "aes128-cbc", "aes192-cbc", "aes256-cbc", "aes128-ctr", "aes192-ctr", "aes256-ctr", "arcfour128", "arcfour256", "arcfour", "blowfish-cbc", "cast128-cbc"},
+	}
+
+	emptyValidation := map[string]bool{
+		"AuthorizedKeysCommand":      true,
+		"AuthorizedKeysCommandRunAs": true,
+	}
+
+	integerValidation := map[string]bool{
+		"ClientAliveCountMax":     true,
+		"ClientAliveInterval":     true,
+		"KeyRegenerationInterval": true,
+		"LoginGraceTime":          true,
+		"MaxAuthTries":            true,
+		"MaxSessions":             true,
+		"MaxStartups":             true,
+		"Port":                    true,
+		"ServerKeyBits":           true,
+		"X11DisplayOffset":        true,
+	}
+
+	listValidation := map[string][]string{
+		"AddressFamily":   []string{"any", "inet", "inet6"},
+		"Compression":     []string{"yes", "no", "delayed"},
+		"GatewayPorts":    []string{"yes", "no", "clientspecified"},
+		"LogLevel":        []string{"QUIET", "FATAL", "ERROR", "INFO", "VERBOSE", "DEBUG", "DEBUG1", "DEBUG2", "DEBUG3"},
+		"PermitRootLogin": []string{"yes", "no", "forced-commands-only", "without-password"},
+		"PermitTunnel":    []string{"yes", "no", "ethernet", "point-to-point"},
+		"Protocol":        []string{"1", "2", "1,2", "2,1"},
+		"SyslogFacility":  []string{"DAEMON", "USER", "AUTH", "AUTHPRIV", "LOCAL0", "LOCAL1", "LOCAL2", "LOCAL3", "LOCAL4", "LOCAL5", "LOCAL6", "LOCAL7"},
+	}
+
+	multipleValuesValidation := map[string]bool{
+		"AcceptEnv":     true,
+		"HostKey":       true,
+		"ListenAddress": true,
+		"Port":          true,
+	}
+
+	stringBoolValidation := map[string]bool{
+		"AllowAgentForwarding":            true,
+		"AllowTcpForwarding":              true,
+		"ChallengeResponseAuthentication": true,
+		"GSSAPICleanupCredentials":        true,
+		"GSSAPIKeyExchange":               true,
+		"GSSAPIStrictAcceptorCheck":       true,
+		"HostbasedAuthentication":         true,
+		"HostbasedUsesNameFromPacketOnly": true,
+		"IgnoreRhosts":                    true,
+		"IgnoreUserKnownHosts":            true,
+		"KerberosAuthentication":          true,
+		"KerberosGetAFSToken":             true,
+		"KerberosOrLocalPasswd":           true,
+		"KerberosTicketCleanup":           true,
+		"KerberosUseKuserok":              true,
+		"PasswordAuthentication":          true,
+		"PermitEmptyPasswords":            true,
+		"PermitUserEnvironment":           true,
+		"PrintLastLog":                    true,
+		"PrintMotd":                       true,
+		"PubkeyAuthentication":            true,
+		"RhostsRSAAuthentication":         true,
+		"RSAAuthentication":               true,
+		"ShowPatchLevel":                  true,
+		"StrictModes":                     true,
+		"TCPKeepAlive":                    true,
+		"UseDNS":                          true,
+		"UseLogin":                        true,
+		"UsePAM":                          true,
+		"UsePrivilegeSeparation":          true,
+		"X11Forwarding":                   true,
+		"X11UseLocalhost":                 true,
+	}
+
 	exitCode := 0
-	for name, entry := range entries {
-		if _, ok := multipleValues[name]; !ok {
-			if len(entry.Values) > 1 {
-				logger.Printf("error: multiple values not allowed for %s", name)
+	for _, e := range entries {
+		if validValue, ok := bestPracticesValidation[e.Key]; ok {
+			if e.Values[0] != validValue {
+				elogger.Printf("error: for key '%s', expected %s, actual '%s'", e.Key, validValue, e.Values[0])
 				exitCode = 1
 			}
 		}
 
-		if validValue, ok := bestPractices[name]; ok {
-			if entry.Values[0] != validValue {
-				logger.Printf("error: for key '%s', expected '%s', actual '%s'", name, validValue, entry.Values[0])
+		if slice, ok := commaValidation[e.Key]; ok {
+			for _, value := range e.Values {
+				values := strings.Split(value, ",")
+				if !inList(e.Key, values, slice) {
+					exitCode = 1
+				}
+			}
+		}
+
+		if _, ok := emptyValidation[e.Key]; !ok {
+			for _, value := range e.Values {
+				if len(value) == 0 {
+					elogger.Printf("error: for key '%s', value may not be empty", e.Key)
+					exitCode = 1
+				}
+			}
+		}
+
+		if _, ok := integerValidation[e.Key]; ok {
+			for _, value := range e.Values {
+				if _, err := strconv.Atoi(value); err != nil {
+					elogger.Printf("error: for key '%s', expected integer, actual '%s'", e.Key, value)
+					exitCode = 1
+				}
+			}
+		}
+
+		if slice, ok := listValidation[e.Key]; ok {
+			if !inList(e.Key, e.Values, slice) {
+				exitCode = 1
+			}
+		}
+
+		if _, ok := multipleValuesValidation[e.Key]; !ok {
+			if len(e.Values) > 1 {
+				elogger.Printf("error: for key '%s', multiple values not allowed", e.Key)
+				exitCode = 1
+			}
+		}
+
+		if _, ok := stringBoolValidation[e.Key]; ok {
+			if !inList(e.Key, e.Values, []string{"yes", "no"}) {
 				exitCode = 1
 			}
 		}
@@ -196,12 +334,12 @@ Commands:
 
 	filename, err := arguments.String("--filename")
 	if err != nil {
-		log.Printf("error: %s", err)
+		elogger.Printf("error: %s", err)
 	}
 
 	entries, err := configRead(filename)
 	if err != nil {
-		log.Printf("error: %s", err)
+		elogger.Printf("error: %s", err)
 	}
 
 	command, _ := arguments.String("<command>")
@@ -222,6 +360,6 @@ Commands:
 		commandUnset(arguments, entries, filename)
 		break
 	default:
-		log.Printf("error: %s", fmt.Errorf("%s is not a command. See 'sshd-config help'", command))
+		elogger.Printf("error: %s", fmt.Errorf("%s is not a command. See 'sshd-config help'", command))
 	}
 }

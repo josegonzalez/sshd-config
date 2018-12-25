@@ -37,20 +37,78 @@ Commands:
 Linting runs against the following rules:
 
 - Multiple values only allowed for:
-    - AcceptEnv
-    - HostKey
-    - ListenAddress
-    - Port
+    - `AcceptEnv`
+    - `HostKey`
+    - `ListenAddress`
+    - `Port`
 - The following keys may *only* have the corresponding values:
-    - AuthenticationMethods:   publickey
-    - HostbasedAuthentication: no
-    - IgnoreRhosts:            yes
-    - PasswordAuthentication:  no
-    - PermitEmptyPasswords:    no
-    - PermitRootLogin:         no
-    - Protocol:                2
-    - PubkeyAuthentication:    yes
-    - StrictModes:             yes
-    - UsePrivilegeSeparation:  yes
+    - `AuthenticationMethods`:   `publickey`
+    - `HostbasedAuthentication`: `no`
+    - `IgnoreRhosts`:            `yes`
+    - `PasswordAuthentication`:  `no`
+    - `PermitEmptyPasswords`:    `no`
+    - `PermitRootLogin`:         `no`
+    - `Protocol`:                `2`
+    - `PubkeyAuthentication`:    `yes`
+    - `StrictModes`:             `yes`
+    - `UsePrivilegeSeparation`:  `yes`
+- The following keys are the *only* ones that may have an empty value:
+    - `AuthorizedKeysCommand`
+    - `AuthorizedKeysCommandRunAs`
+- The following keys may *only* have one of the corresponding values:
+    - `AddressFamily`:             `any`, `inet`, `inet6`
+    - `Compression`:               `yes`, `no`, `delayed`
+    - `GatewayPorts`:              `yes`, `no`, `clientspecified`
+    - `LogLevel`:                  `QUIET`, `FATAL`, `ERROR`, `INFO`, `VERBOSE`, `DEBUG`, `DEBUG1`, `DEBUG2`, `DEBUG3`
+    - `PermitRootLogin`:           `yes`, `no`, `forced-commands-only`, `without-password`
+    - `PermitTunnel`:              `yes`, `no`, `ethernet`, `point-to-point`
+    - `Protocol`:                  `1`, `2`, `1,2`, `2,1`
+    - `SyslogFacility`:            `DAEMON`, `USER`, `AUTH`, `AUTHPRIV`, `LOCAL0`, `LOCAL1`, `LOCAL2`, `LOCAL3`, `LOCAL4`, `LOCAL5`, `LOCAL6`, `LOCAL7`
+- The following keys may comprise of one or more - comma-separated - of the corresponding values (the error will point out an invalid value within the provided list):
+    - `Ciphers`:                   `3des-cbc`, `aes128-cbc`, `aes192-cbc`, `aes256-cbc`, `aes128-ctr`, `aes192-ctr`, `aes256-ctr`, `arcfour128`, `arcfour256`, `arcfour`, `blowfish-cbc`, `cast128-cbc`
+- The following keys may *only* have an integer as a value:
+    - `ClientAliveCountMax`
+    - `ClientAliveInterval`
+    - `KeyRegenerationInterval`
+    - `LoginGraceTime`
+    - `MaxAuthTries`
+    - `MaxSessions`
+    - `MaxStartups`
+    - `Port`
+    - `ServerKeyBits`
+    - `X11DisplayOffset`
+- The following keys may *only* have a value of `yes` or `no`:
+    - `AllowAgentForwarding`
+    - `AllowTcpForwarding`
+    - `ChallengeResponseAuthentication`
+    - `GSSAPICleanupCredentials`
+    - `GSSAPIKeyExchange`
+    - `GSSAPIStrictAcceptorCheck`
+    - `HostbasedAuthentication`
+    - `HostbasedUsesNameFromPacketOnly`
+    - `IgnoreRhosts`
+    - `IgnoreUserKnownHosts`
+    - `KerberosAuthentication`
+    - `KerberosGetAFSToken`
+    - `KerberosOrLocalPasswd`
+    - `KerberosTicketCleanup`
+    - `KerberosUseKuserok`
+    - `PasswordAuthentication`
+    - `PermitEmptyPasswords`
+    - `PermitUserEnvironment`
+    - `PrintLastLog`
+    - `PrintMotd`
+    - `PubkeyAuthentication`
+    - `RhostsRSAAuthentication`
+    - `RSAAuthentication`
+    - `ShowPatchLevel`
+    - `StrictModes`
+    - `TCPKeepAlive`
+    - `UseDNS`
+    - `UseLogin`
+    - `UsePAM`
+    - `UsePrivilegeSeparation`
+    - `X11Forwarding`
+    - `X11UseLocalhost`
 
 Any violation of the above rules will result in the error being printed to stderr and non-zero exit code.
