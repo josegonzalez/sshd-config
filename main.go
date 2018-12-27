@@ -19,6 +19,7 @@ type entry struct {
 }
 
 var (
+	// Version for sshd-config
 	Version string
 	elogger *log.Logger
 	logger  *log.Logger
@@ -165,6 +166,13 @@ func commandLint(arguments docopt.Opts, entries map[string]entry) {
 		"UsePrivilegeSeparation":  "yes",
 	}
 
+	bestPracticesSliceValidation := map[string][]string{
+		"HostKey":       []string{"/etc/ssh/ssh_host_ed25519_key", "/etc/ssh/ssh_host_rsa_key"},
+		"KexAlgorithms": []string{"curve25519-sha256@libssh.org", "diffie-hellman-group-exchange-sha256"},
+		"Ciphers":       []string{"chacha20-poly1305@openssh.com", "aes256-gcm@openssh.com", "aes128-gcm@openssh.com", "aes256-ctr", "aes192-ctr", "aes128-ctr"},
+		"MACs":          []string{"hmac-sha2-512-etm@openssh.com", "hmac-sha2-256-etm@openssh.com", "umac-128-etm@openssh.com", "hmac-sha2-512", "hmac-sha2-256", "umac-128@openssh.com"},
+	}
+
 	commaValidation := map[string][]string{
 		"Ciphers": []string{"3des-cbc", "aes128-cbc", "aes192-cbc", "aes256-cbc", "aes128-ctr", "aes192-ctr", "aes256-ctr", "arcfour128", "arcfour256", "arcfour", "blowfish-cbc", "cast128-cbc"},
 	}
@@ -246,6 +254,15 @@ func commandLint(arguments docopt.Opts, entries map[string]entry) {
 			if e.Values[0] != validValue {
 				elogger.Printf("error: for key '%s', expected %s, actual '%s'", e.Key, validValue, e.Values[0])
 				exitCode = 1
+			}
+		}
+
+		if slice, ok := bestPracticesSliceValidation[e.Key]; ok {
+			for _, value := range e.Values {
+				values := strings.Split(value, ",")
+				if !inList(e.Key, values, slice) {
+					exitCode = 1
+				}
 			}
 		}
 
