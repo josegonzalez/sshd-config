@@ -344,6 +344,7 @@ Options:
 Commands:
    add        Add a value to a key
    get        Get a key's values
+   help       Print this help output
    lint       Lint a config against best practices
    set        Set a value on a key
    unset      Unset all instances of a key`
@@ -367,6 +368,9 @@ Commands:
 		break
 	case "get":
 		commandGet(arguments, entries)
+		break
+	case "help":
+		fmt.Println(usage)
 		break
 	case "lint":
 		commandLint(arguments, entries)
