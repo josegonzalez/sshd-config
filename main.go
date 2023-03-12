@@ -62,6 +62,8 @@ func configRead(path string) (map[string]entry, error) {
 			continue
 		}
 
+		line = strings.ReplaceAll(line, "\t", " ")
+
 		params := re.FindStringSubmatch(line)
 		if len(params) != 3 {
 			continue
