@@ -3,23 +3,64 @@ NAME = sshd-config
 HARDWARE = $(shell uname -m)
 VERSION ?= 0.8.0
 
-build: clean $(NAME)
-	mkdir -p build/linux  && GOOS=linux  go build -ldflags "-X main.Version=$(VERSION)" -a -o build/linux/$(NAME)
-	mkdir -p build/darwin && GOOS=darwin go build -ldflags "-X main.Version=$(VERSION)" -a -o build/darwin/$(NAME)
+GOOS ?= darwin
 
-clean:
-	rm -rf build/* $(NAME)
+build:
+	@$(MAKE) build/linux/$(NAME)-amd64
+	@$(MAKE) build/linux/$(NAME)-arm64
+	@$(MAKE) build/linux/$(NAME)-armhf
+	@$(MAKE) build/darwin/$(NAME)-amd64
+	@$(MAKE) build/darwin/$(NAME)-arm64
 
-run: $(NAME)
-	./$(NAME)
+build/darwin/$(NAME)-amd64:
+	mkdir -p build/darwin
+	CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -a -asmflags=-trimpath=/src -gcflags=-trimpath=/src \
+										-ldflags "-s -w -X main.Version=$(VERSION)" \
+										-o build/darwin/$(NAME)
 
-$(NAME):
-	go build -ldflags "-X main.Version=$(VERSION)"
+build/darwin/$(NAME)-arm64:
+	mkdir -p build/darwin
+	CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -a -asmflags=-trimpath=/src -gcflags=-trimpath=/src \
+										-ldflags "-s -w -X main.Version=$(VERSION)" \
+										-o build/darwin/$(NAME)
 
-release: build
+build/linux/$(NAME)-amd64:
+	mkdir -p build/linux
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -asmflags=-trimpath=/src -gcflags=-trimpath=/src \
+										-ldflags "-s -w -X main.Version=$(VERSION)" \
+										-o build/linux/$(NAME)-amd64
+
+build/linux/$(NAME)-arm64:
+	mkdir -p build/linux
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -a -asmflags=-trimpath=/src -gcflags=-trimpath=/src \
+										-ldflags "-s -w -X main.Version=$(VERSION)" \
+										-o build/linux/$(NAME)-arm64
+
+build/linux/$(NAME)-armhf:
+	mkdir -p build/linux
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=5 go build -a -asmflags=-trimpath=/src -gcflags=-trimpath=/src \
+										-ldflags "-s -w -X main.Version=$(VERSION)" \
+										-o build/linux/$(NAME)-armhf
+
+deps:
+	go get -u github.com/progrium/gh-release/...
+	go get -u github.com/spf13/viper/...
+
+create-release-artifacts: build
 	rm -rf release && mkdir release
-	tar -zcf release/$(NAME)_$(VERSION)_linux_$(HARDWARE).tgz -C build/linux $(NAME)
-	tar -zcf release/$(NAME)_$(VERSION)_darwin_$(HARDWARE).tgz -C build/darwin $(NAME)
+	tar -zcf release/$(NAME)_$(VERSION)_linux_amd64.tgz -C build/linux $(NAME)-amd64
+	tar -zcf release/$(NAME)_$(VERSION)_linux_arm64.tgz -C build/linux $(NAME)-arm64
+	tar -zcf release/$(NAME)_$(VERSION)_linux_armhf.tgz -C build/linux $(NAME)-armhf
+	tar -zcf release/$(NAME)_$(VERSION)_darwin_amd64.tgz -C build/darwin $(NAME)-amd64
+	tar -zcf release/$(NAME)_$(VERSION)_darwin_arm64.tgz -C build/darwin $(NAME)-arm64
+
+release: create-release-artifacts
 	gh-release create $(GH_USER)/$(NAME) $(VERSION) $(shell git rev-parse --abbrev-ref HEAD)
 
-.PHONY: build clean deps release run
+clean:
+	rm -rf build/*
+
+install:
+	install build/$(GOOS)/sm $(GOPATH)/bin/
+
+.PHONY: build release deps clean install
