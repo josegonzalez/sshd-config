@@ -1,7 +1,7 @@
 GH_USER ?= josegonzalez
 NAME = sshd-config
 HARDWARE = $(shell uname -m)
-VERSION ?= 0.8.0
+VERSION ?= 0.9.0
 
 GOOS ?= darwin
 
